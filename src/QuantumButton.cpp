@@ -19,6 +19,7 @@ Button::Button(uint8_t pin, void (*onTap)(void))
 {
 	_pin = pin;
 	_onTap = onTap;
+	_active_state = HIGH;
 }
 
 Button::Button(uint8_t pin, bool active_state, void (*onTap)(void), void (*onDoubleTap)(void), void (*onTripleTap)(void), void (*onLongTap)(void), void (*onHold)(void))
@@ -137,9 +138,13 @@ void Button::setMaxDelayBetweenTaps(uint16_t _delay_between_taps)
 
 uint8_t Button::process_button()
 {
-  bool pin_state = digitalRead(_pin);
+  bool pin_state = digitalRead(_pin) == _active_state;
   unsigned long current_time = millis();
-  if (pin_state == HIGH && logical_state == 0)
+  if (pin_state == LOW && logical_state == 15)
+  {
+	  logical_state = 0;
+  }
+  else if (pin_state == HIGH && logical_state == 0)
   {
     logical_state = 1; // Нажатие кнопки начато
     tap_time = current_time;
@@ -157,7 +162,7 @@ uint8_t Button::process_button()
       result = LongTap;
     else if (logical_state == 14)
       result = VeryLongTap;
-    logical_state = 0;
+    logical_state = 15;
     return result;
   }
   else if (current_time - tap_time > bounce_time)
