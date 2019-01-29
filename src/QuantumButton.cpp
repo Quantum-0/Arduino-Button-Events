@@ -204,7 +204,7 @@ uint8_t Button::process_button()
   {
     if (pin_state == LOW)
     {
-      if (current_time - tap_time < skip_tap_time)
+      if (current_time - tap_time - bounce_time < skip_tap_time)
         logical_state = BS_RELEASED; // Fake tap
       else if (current_time - tap_time < single_tap_time)
       {
