@@ -11,41 +11,37 @@ This library allows you to easily process next events of connected button to ard
 ## Usage
 
 Firsly you need to include library
-> #include <QuantumButton.h>
+```c++
+#include <QuantumButton.h>
+```
 
 Then declare button object
-> Button myButton(SENSOR_BUTTON_PIN);
+```c++
+Button myButton(SENSOR_BUTTON_PIN);
+```
 
 Then subscribe to button events
-> myButton.attachTap(callback_tap);
->
-> myButton.attachDoubleTap(callback_double_tap);
+```c++
+myButton.attachTap(callback_tap);
+myButton.attachDoubleTap(callback_double_tap);
+```
 
 Then write that functions
-> void callback_tap()
->
-> {
->
->       /* You code here */
->
-> }
->
-> void callback_double_tap()
->
-> {
->
->       /* You code here */
->
-> }
+```c++
+void callback_tap() {
+    /* You code here */
+}
+void callback_double_tap() {
+    /* You code here */
+}
+```
 
 And then add calling loop function of button in your loop function
-> void loop()
->
-> {
->
->   myButton.loop();
->
-> }
+```c++
+void loop() {
+    myButton.loop();
+}
+```
 
 That's all you need to handle this button events!
 
