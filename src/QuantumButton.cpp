@@ -226,19 +226,24 @@ void Button::loop()
 	switch(process_button())
 	{
 		case Tap:
-			_onTap();
+			if (_onTap)
+				_onTap();
 			break;
 		case DoubleTap:
-			_on2Tap();
+			if (_on2Tap)
+				_on2Tap();
 			break;
 		case TripleTap:
-			_on3Tap();
+			if (_on3Tap)
+				_on3Tap();
 			break;
 		case LongTap:
-			_onLTap();
+			if (_onLTap)
+				_onLTap();
 			break;
 		case VeryLongTap:
-			_onHold();
+			if (_onHold)
+				_onHold();
 			break;
 	}
 }
