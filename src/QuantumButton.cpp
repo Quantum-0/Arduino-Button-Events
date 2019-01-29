@@ -3,6 +3,24 @@
 #include <inttypes.h>
 #include "Arduino.h"
 
+// BS -button states
+#define BS_RELEASED 0
+#define BS_TAP1_PRESSING_BEGIN 1
+#define BS_TAP1_PRESSING_END 2
+#define BS_TAP1_RELEASING_BEGIN 3
+#define BS_TAP1_RELEASING_END 4
+#define BS_TAP2_PRESSING_BEGIN 5
+#define BS_TAP2_PRESSING_END 6
+#define BS_TAP2_RELEASING_BEGIN 7
+#define BS_TAP2_RELEASING_END 8
+#define BS_TAP3_PRESSING_BEGIN 9
+#define BS_TAP3_PRESSING_END 10
+#define BS_TAP3_RELEASING_BEGIN 11
+#define BS_TAP3_RELEASING_END 12
+#define BS_LONG_TAP 13
+#define BS_HOLD 14
+#define BS_HOLDED_WAIT_FOR_RELEASING 15
+
 Button::Button(uint8_t pin)
 {
 	_pin = pin;
@@ -45,36 +63,36 @@ void Button::attachAll(void (*onTap)(void), void (*onDoubleTap)(void), void (*on
 
 void Button::dettachAll()
 {
-	_onTap = 0;
-	_on2Tap = 0;
-	_on3Tap = 0;
-	_onLTap = 0;
-	_onHold = 0;
+	_onTap = NULL;
+	_on2Tap = NULL;
+	_on3Tap = NULL;
+	_onLTap = NULL;
+	_onHold = NULL;
 }
 
 void Button::dettachTap()
 {
-	_onTap = 0;
+	_onTap = NULL;
 }
 
 void Button::dettachDoubleTap()
 {
-	_on2Tap = 0;
+	_on2Tap = NULL;
 }
 
 void Button::dettachTripleTap()
 {
-	_on3Tap = 0;
+	_on3Tap = NULL;
 }
 
 void Button::dettachLongTap()
 {
-	_onLTap = 0;
+	_onLTap = NULL;
 }
 
 void Button::dettachHold()
 {
-	_onHold = 0;
+	_onHold = NULL;
 }
 void Button::attachTap(void (*onTap)(void))
 {
@@ -140,86 +158,86 @@ uint8_t Button::process_button()
 {
   bool pin_state = digitalRead(_pin) == _active_state;
   unsigned long current_time = millis();
-  if (pin_state == LOW && logical_state == 15)
+  if (pin_state == LOW && logical_state == BS_HOLDED_WAIT_FOR_RELEASING)
   {
-	  logical_state = 0;
+	  logical_state = BS_RELEASED;
   }
-  else if (pin_state == HIGH && logical_state == 0)
+  else if (pin_state == HIGH && logical_state == BS_RELEASED)
   {
-    logical_state = 1; // Нажатие кнопки начато
+    logical_state = BS_TAP1_PRESSING_BEGIN;
     tap_time = current_time;
   }
   else if ((pin_state == LOW && current_time - tap_time > delay_between_taps) || current_time - tap_time > delay_between_taps + very_long_tap_time)
   {
     ButtonEvent result = None;
-    if (logical_state == 4)
+    if (logical_state == BS_TAP1_RELEASING_END)
       result = Tap;
-    else if (logical_state == 8)
+    else if (logical_state == BS_TAP2_RELEASING_END)
       result = DoubleTap;  
-    else if (logical_state == 12)
+    else if (logical_state == BS_TAP3_RELEASING_END)
       result = TripleTap;
-    else if (logical_state == 13)
+    else if (logical_state == BS_LONG_TAP)
       result = LongTap;
-    else if (logical_state == 14)
+    else if (logical_state == BS_HOLD)
       result = VeryLongTap;
-    logical_state = 15;
+    logical_state = BS_HOLDED_WAIT_FOR_RELEASING;
     return result;
   }
   else if (current_time - tap_time > bounce_time)
   {
-    if (logical_state == 1)
-      logical_state = 2; // Кнопка нажата
-    else if (logical_state == 3)
-      logical_state = 4; // Кнопка отпущена
-    else if (logical_state == 5)
-      logical_state = 6; // Кнопка нажата второй раз
-    else if (logical_state == 7)
-      logical_state = 8; // Кнопка отпущена второй раз
-    else if (logical_state == 9)
-      logical_state = 10; // Кнопка нажата второй раз
-    else if (logical_state == 11)
-      logical_state = 12; // Кнопка отпущена второй раз
+    if (logical_state == BS_TAP1_PRESSING_BEGIN)
+      logical_state = BS_TAP1_PRESSING_END;
+    else if (logical_state == BS_TAP1_RELEASING_BEGIN)
+      logical_state = BS_TAP1_RELEASING_END;
+    else if (logical_state == BS_TAP2_PRESSING_BEGIN)
+      logical_state = BS_TAP2_PRESSING_END;
+    else if (logical_state == BS_TAP2_RELEASING_BEGIN)
+      logical_state = BS_TAP2_RELEASING_END; // Кнопка отпущена второй раз
+    else if (logical_state == BS_TAP3_PRESSING_BEGIN)
+      logical_state = BS_TAP3_PRESSING_END; // Кнопка нажата второй раз
+    else if (logical_state == BS_TAP3_RELEASING_BEGIN)
+      logical_state = BS_TAP3_RELEASING_END; // Кнопка отпущена второй раз
   }
-  if (logical_state == 2)
+  if (logical_state == BS_TAP1_PRESSING_END)
   {
     if (pin_state == LOW)
     {
       if (current_time - tap_time < skip_tap_time)
-        logical_state = 0; // Обрабатываем как ложное нажатие
+        logical_state = BS_RELEASED; // Fake tap
       else if (current_time - tap_time < single_tap_time)
       {
-        logical_state = 3; // Отпускание кнопки
+        logical_state = BS_TAP1_RELEASING_BEGIN; // Отпускание кнопки
         tap_time = current_time;
       }
     }
     else if (current_time - tap_time > long_tap_time)
     {
-      logical_state = 13;
+      logical_state = BS_LONG_TAP;
     }
   }
-  else if (logical_state == 13)
+  else if (logical_state == BS_LONG_TAP)
   {
     if (current_time - tap_time > very_long_tap_time)
-      logical_state = 14;
+      logical_state = BS_HOLD;
   }
-  else if (pin_state == HIGH && logical_state == 4)
+  else if (pin_state == HIGH && logical_state == BS_TAP1_RELEASING_END)
   {
-    logical_state = 5; // Второе нажатие начато
+    logical_state = BS_TAP2_PRESSING_BEGIN;
     tap_time = current_time;      
   }
-  else if (pin_state == LOW && logical_state == 6)
+  else if (pin_state == LOW && logical_state == BS_TAP2_PRESSING_END)
   {
-    logical_state = 7; // Второе отпускание начато
+    logical_state = BS_TAP2_RELEASING_BEGIN;
     tap_time = current_time;
   }
-  else if (pin_state == HIGH && logical_state == 8)
+  else if (pin_state == HIGH && logical_state == BS_TAP2_RELEASING_END)
   {
-    logical_state = 9; // Третье нажатие начато
+    logical_state = BS_TAP3_PRESSING_BEGIN;
     tap_time = current_time;      
   }
-  else if (pin_state == LOW && logical_state == 10)
+  else if (pin_state == LOW && logical_state == BS_TAP3_PRESSING_END)
   {
-    logical_state = 11; // Третье отпускание начато
+    logical_state = BS_TAP3_RELEASING_BEGIN;
     tap_time = current_time;
   }
   
