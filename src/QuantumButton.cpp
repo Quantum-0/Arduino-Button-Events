@@ -156,6 +156,8 @@ void Button::setMaxDelayBetweenTaps(uint16_t _delay_between_taps)
 
 uint8_t Button::process_button()
 {
+  if (!_onTap && !_on2Tap && !_on3Tap && !_onLTap && !_onHold)
+	  return None;
   bool pin_state = digitalRead(_pin) == _active_state;
   unsigned long current_time = millis();
   if (pin_state == LOW && logical_state == BS_HOLDED_WAIT_FOR_RELEASING)
@@ -167,7 +169,7 @@ uint8_t Button::process_button()
     logical_state = BS_TAP1_PRESSING_BEGIN;
     tap_time = current_time;
   }
-  else if ((pin_state == LOW && current_time - tap_time > delay_between_taps) || current_time - tap_time > delay_between_taps + very_long_tap_time)
+  else if ((pin_state == LOW && (current_time - tap_time > delay_between_taps || (_on2Tap == NULL && _on3Tap == NULL))) || current_time - tap_time > delay_between_taps + very_long_tap_time)
   {
     ButtonEvent result = None;
     if (logical_state == BS_TAP1_RELEASING_END)
@@ -192,11 +194,11 @@ uint8_t Button::process_button()
     else if (logical_state == BS_TAP2_PRESSING_BEGIN)
       logical_state = BS_TAP2_PRESSING_END;
     else if (logical_state == BS_TAP2_RELEASING_BEGIN)
-      logical_state = BS_TAP2_RELEASING_END; // Кнопка отпущена второй раз
+      logical_state = BS_TAP2_RELEASING_END;
     else if (logical_state == BS_TAP3_PRESSING_BEGIN)
-      logical_state = BS_TAP3_PRESSING_END; // Кнопка нажата второй раз
+      logical_state = BS_TAP3_PRESSING_END;
     else if (logical_state == BS_TAP3_RELEASING_BEGIN)
-      logical_state = BS_TAP3_RELEASING_END; // Кнопка отпущена второй раз
+      logical_state = BS_TAP3_RELEASING_END;
   }
   if (logical_state == BS_TAP1_PRESSING_END)
   {
@@ -206,7 +208,7 @@ uint8_t Button::process_button()
         logical_state = BS_RELEASED; // Fake tap
       else if (current_time - tap_time < single_tap_time)
       {
-        logical_state = BS_TAP1_RELEASING_BEGIN; // Отпускание кнопки
+        logical_state = BS_TAP1_RELEASING_BEGIN;
         tap_time = current_time;
       }
     }
