@@ -1,0 +1,38 @@
+#######################################
+# Syntax Coloring Map For QuantumButton
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Button	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+attachTap	KEYWORD2
+attachDoubleTap	KEYWORD2
+attachTripleTap	KEYWORD2
+attachLongTap	KEYWORD2
+attachHold	KEYWORD2
+attachAll	KEYWORD2
+dettachAll	KEYWORD2
+dettachTap	KEYWORD2
+dettachDoubleTap	KEYWORD2
+dettachTripleTap	KEYWORD2
+dettachLongTap	KEYWORD2
+dettachHold	KEYWORD2
+setActiveState	KEYWORD2
+setBounceTime	KEYWORD2
+setSkipTapTime	KEYWORD2
+setMaxDelayBetweenTaps	KEYWORD2
+setHoldTime	KEYWORD2
+setLongTapTime	KEYWORD2
+setSingleTapTime	KEYWORD2
+loop	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
